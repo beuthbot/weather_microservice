@@ -28,9 +28,24 @@ module.exports = {
          // empty message text that has to be filled and parsed
          let messageText = ''
 
-         messageText = 'Hey, das Wetter in Berlin sieht heute wie folgt aus: \n\n'
+         messageText = 'Hey, das Wetter in Berlin sieht in den nächsten Tagen wie folgt aus: \n\n'
+        for(i = 0; i < weather.list.length; i += 2){
 
-         weather.list.forEach(forecast => {
+            forecast = weather.list[i]
+
+            messageText +=
+            '\n' +
+            'Tag und Uhrzeit: ' + forecast.dt_txt +
+            '\n' +
+            'Beschreibung: ' + forecast.weather[0].description +
+            '\n' +
+            'Temperatur: ' + forecast.main.temp +
+            '\n' +
+            'Luftfeuchtigkeit: ' + forecast.main.humidity + '%' +
+            '\n' +
+            'Windgeschwindigkeit: ' + forecast.wind.speed + 'm/s'
+        }
+         /*weather.list.forEach(forecast => {
              messageText += 
             '\n' +
             'Tag und Uhrzeit: ' + forecast.dt_txt +
@@ -43,7 +58,7 @@ module.exports = {
             '\n' +
             'Windgeschwindigkeit: ' + forecast.wind.speed + 'm/s'
 
-         })
+         })*/
          
         return messageText
     }
