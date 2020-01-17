@@ -1,19 +1,21 @@
 # https://docs.docker.com/compose/compose-file/
-version: "2.0"
+version: '2.0'
 
 services:
-  mensa-microservice:
-    container_name: mensa-microservice
-    build:
-      context: ./
-    restart: always
-    networks:
-      - web
-    expose:
-      - 7000
-    volumes:
-      - .:/app
+    mensa-microservice:
+        container_name: mensa-microservice
+        build:
+            context: ./
+        restart: always
+        networks:
+            - web
+        expose:
+            - 7000
+        environments:
+            - WEATHER_API_KEY
+        volumes:
+            - .:/app
 
 networks:
-  web:
-    external: true
+    web:
+        external: true
