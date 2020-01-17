@@ -1,5 +1,5 @@
 module.exports = {
-    generateForecastAnswer: async weather => {
+    generateForecastAnswer: async (weather) => {
         // empty message text that has to be filled and parsed
         let messageText = ''
 
@@ -24,28 +24,16 @@ module.exports = {
         return messageText
     },
 
-    generateFiveDayForecastAnswer: async weather => {
+    generateFiveDayForecastAnswer: async (weather,date) => {
          // empty message text that has to be filled and parsed
          let messageText = ''
 
-         messageText = 'Hey, das Wetter in Berlin sieht in den nächsten Tagen wie folgt aus: \n\n'
-        for(i = 0; i < weather.list.length; i += 2){
+         messageText = 'Hey, das Wetter in Berlin sieht am ' + date + ' wie folgt aus: \n\n'
 
-            forecast = weather.list[i]
-
-            messageText +=
-            '\n' +
-            'Tag und Uhrzeit: ' + forecast.dt_txt +
-            '\n' +
-            'Beschreibung: ' + forecast.weather[0].description +
-            '\n' +
-            'Temperatur: ' + forecast.main.temp +
-            '\n' +
-            'Luftfeuchtigkeit: ' + forecast.main.humidity + '%' +
-            '\n' +
-            'Windgeschwindigkeit: ' + forecast.wind.speed + 'm/s'
-        }
-         /*weather.list.forEach(forecast => {
+         weather.list.forEach(forecast => {
+             forecastDate = forecast.dt_txt.split(" ")
+             forecastDay = forecastDate[0]
+             if(forecastDay === date){
              messageText += 
             '\n' +
             'Tag und Uhrzeit: ' + forecast.dt_txt +
@@ -57,8 +45,9 @@ module.exports = {
             'Luftfeuchtigkeit: ' + forecast.main.humidity + '%' +
             '\n' +
             'Windgeschwindigkeit: ' + forecast.wind.speed + 'm/s'
+             }
 
-         })*/
+         })
          
         return messageText
     }

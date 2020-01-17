@@ -7,19 +7,29 @@ router.post('/', async (req, res, next) => {
 
     let message = req.body
 
-    console.log(message)
+    let today = new Date().toISOString()
+    let todaySplitted = today.split("T")
+    today = todaySplitted[0]
 
-    let forToday = message.evaluatedMessage.forToday
+    let date = message.evaluatedMessage.date
+    if(date == undefined){
+        date = new Date().toISOString()       
+    }
+
+    let dateSplitted = date.split("T")
+    date = dateSplitted[0]
+
     let weather
     let answerText
-    if(forToday){
+    
+    if(date === today){
         weather = await weatherService.getForecast()
         answerText = await generatedMessage.generateForecastAnswer(
             weather
         )
     } else {
         weather = await weatherService.getFiveDayForecast()
-        answerText = await generatedMessage.generateFiveDayForecastAnswer(weather)
+        answerText = await generatedMessage.generateFiveDayForecastAnswer(weather, date)
     }
 
     message.answer = { content: answerText, history: 'WeatherService' }

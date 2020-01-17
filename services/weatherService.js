@@ -6,7 +6,7 @@ const weatherCache = new NodeCache({stdTTL: 21600});
 module.exports = {
     getForecast: async () => {
         forecast = weatherCache.get("today")
-        console.log("CACHED: ",forecast)
+        //console.log("CACHED: ",forecast)
         if(forecast == undefined){
             try {
                 let forecastToday = await axios.get(
@@ -26,7 +26,7 @@ module.exports = {
 
     getFiveDayForecast: async () => {
         fiveDayForecast = weatherCache.get("fiveDays")
-        console.log("CACHED: ",fiveDayForecast)
+        //console.log("CACHED: ",fiveDayForecast)
         if(fiveDayForecast == undefined){
             try {
                 let forecastFiveDays = await axios.get(
