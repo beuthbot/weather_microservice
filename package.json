@@ -1,0 +1,14 @@
+{
+  "name": "weather_microservice",
+  "version": "0.0.0",
+  "description": "a microservice for the weather",
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "author": "Steven Sobkowski",
+  "dependencies": {
+    "axios": "^0.19.1",
+    "express": "^4.17.1",
+    "node-cache": "^5.1.0"
+  }
+}
