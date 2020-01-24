@@ -5,34 +5,36 @@ const generatedMessage = require('../services/generateResponse')
 
 router.post('/', async (req, res, next) => {
 
-    let message = req.body
+    let message = req.body.message
 
-    let today = new Date().toISOString()
-    let todaySplitted = today.split("T")
-    today = todaySplitted[0]
+    let today = new Date().toISOString().split("T")[0]
+    let date = new Date().toISOString().split("T")[0]
 
-    let date = message.evaluatedMessage.date
-    if(date == undefined){
-        date = new Date().toISOString()       
-    }
+    message.entities.forEach(function(value, index, array) {
+        if (value.entity == 'time') {
+            date = value.value.split("T")[0]
+        }
+    })
 
-    let dateSplitted = date.split("T")
-    date = dateSplitted[0]
+    console.log("today: "+ today)
+    console.log("date: " + date)
 
     let weather
     let answerText
     
-    if(date === today){
+    if(new Date(date) <= new Date(today)){
+	console.log("today is the day")
         weather = await weatherService.getForecast()
         answerText = await generatedMessage.generateForecastAnswer(
             weather
         )
     } else {
+	console.log("five days")
         weather = await weatherService.getFiveDayForecast()
         answerText = await generatedMessage.generateFiveDayForecastAnswer(weather, date)
     }
 
-    message.answer = { content: answerText, history: 'WeatherService' }
+    message.answer = { content: answerText, history: ['WeatherService'] }
     res.send(message)
 
 })
