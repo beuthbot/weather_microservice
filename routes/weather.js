@@ -1,15 +1,18 @@
 const express = require('express')
 const router = express.Router()
+const geoService = require('../services/geoService')
 const weatherService = require('../services/weatherService')
 const generatedMessage = require('../services/generateResponse')
 
 router.post('/', async (req, res, next) => {
 
     let message = req.body.message
+    let place = 'Berlin,de'; // placeholder (will be in the request as entity)
 
     let today = new Date().toISOString().split("T")[0]
     let tomorrow = new Date(today)
     let date = null
+    let coordinates = null
     let weather = null
     let answerText = null
 
@@ -27,12 +30,14 @@ router.post('/', async (req, res, next) => {
 
     if (new Date(today) <= date && date < new Date(tomorrow)) {
         //console.log("Heute")
-        weather = await weatherService.getForecast()
+        coordinates = await geoService.getCoordinates(place)
+        weather = await weatherService.getForecast(coordinates)
         answerText = await generatedMessage.generateForecastAnswer(weather, date)
 
     } else if (date >= new Date(tomorrow)) {
         //console.log("Morden oder später")
-        weather = await weatherService.getFiveDayForecast()
+        coordinates = await geoService.getCoordinates(place)
+        weather = await weatherService.getFiveDayForecast(coordinates)
         answerText = await generatedMessage.generateFiveDayForecastAnswer(weather, date.toJSON().split("T")[0])
 
     } else {

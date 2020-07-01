@@ -2,9 +2,11 @@ const axios = require('axios')
 const config = require('../config')
 
 module.exports = {
-    getForecast: async () => {
+    getForecast: async (coords) => {
         try {
-            let url = `https://api.openweathermap.org/data/2.5/onecall?lat=52.544500&lon=13.353260&exclude=current,minutely,daily&units=metric&lang=de&appid=${config.apiKey}`
+            console.log(coords)
+
+            let url = `https://api.openweathermap.org/data/2.5/onecall?lat=${coords.lat}&lon=${coords.lon}&exclude=current,minutely,daily&units=metric&lang=de&appid=${config.apiKey}`
             //console.debug(url)
 
             let forecastToday = await axios.get(url)
@@ -16,9 +18,11 @@ module.exports = {
         }
     },
 
-    getFiveDayForecast: async () => {
+    getFiveDayForecast: async (coords) => {
         try {
-            let url = `https://api.openweathermap.org/data/2.5/forecast?q=Berlin,de&units=metric&lang=de&APPID=${config.apiKey}`
+            console.log(coords)
+
+            let url = `https://api.openweathermap.org/data/2.5/forecast?q=${coords.query}&units=metric&lang=de&APPID=${config.apiKey}`
             //console.debug(url)
 
             let forecastFiveDays = await axios.get(url)
