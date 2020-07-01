@@ -8,33 +8,38 @@ router.post('/', async (req, res, next) => {
     let message = req.body.message
 
     let today = new Date().toISOString().split("T")[0]
-    let date = new Date().toISOString().split("T")[0]
+    let tomorrow = new Date(today)
+    let date = null
+    let weather = null
+    let answerText = null
 
-    message.entities.forEach(function(value, index, array) {
+    tomorrow.setDate(tomorrow.getDate() + 1)
+
+    message.entities.forEach(function (value, index, array) {
         if (value.entity == 'time') {
-            date = value.value.split("T")[0]
+            date = new Date(value.value.split(".")[0])
         }
     })
 
-    console.log("today: "+ today)
-    console.log("date: " + date)
+    // console.log(`date:\t\t ${new Date(date)} / new Date: ${new Date(date).getTime()},
+    //             today:\t\t ${new Date(today)} / new Date: ${new Date(today).getTime()},
+    //             tomorrow:\t ${tomorrow} / new Date: ${new Date(tomorrow).getTime()}`)
 
-    let weather
-    let answerText
-    
-    if(new Date(date) <= new Date(today)){
-	console.log("today is the day")
+    if (new Date(today) <= date && date < new Date(tomorrow)) {
+        //console.log("Heute")
         weather = await weatherService.getForecast()
-        answerText = await generatedMessage.generateForecastAnswer(
-            weather
-        )
-    } else {
-	console.log("five days")
+        answerText = await generatedMessage.generateForecastAnswer(weather, date)
+
+    } else if (date >= new Date(tomorrow)) {
+        //console.log("Morden oder später")
         weather = await weatherService.getFiveDayForecast()
-        answerText = await generatedMessage.generateFiveDayForecastAnswer(weather, date)
+        answerText = await generatedMessage.generateFiveDayForecastAnswer(weather, date.toJSON().split("T")[0])
+
+    } else {
+        //console.log("Gestern oder früher")
     }
 
-    message.answer = { content: answerText, history: ['WeatherService'] }
+    message.answer = { content: answerText, history: ['WeatherService'], parse_mode:"Markdown"}
     res.send(message)
 
 })
