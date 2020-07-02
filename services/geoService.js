@@ -3,14 +3,19 @@ const config = require('../config')
 
 module.exports = {
     getCoordinates: async (query) => {
-        try {
-            let result = {
-                lat: null,
-                lon: null,
-                display_name: null,
-                query
-            }
+        // default data (fallback)
+        let result = {
+            lat: '52.5440958',
+            lon: '13.3522725',
+            display_name: 'Berlin, Deutschland',
+            query
+        }
 
+        if(!query || typeof query !== 'string' || query.toLowerCase() === 'berlin') {
+            return result
+        }
+
+        try {
             let url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json`
             // console.debug(url)
 
@@ -22,11 +27,17 @@ module.exports = {
                     lon: res.data[0].lon,
                     display_name: res.data[0].display_name
                 }}
+            } else {
+                result = {...result, ...{ error: 'Data of nominatim API is missing' }}
             }
 
-            return result
         } catch (error) {
             console.log(error)
+            result = {...result, ...{ error }}
         }
+
+        console.log(result)
+
+        return result
     }
 }

@@ -7,16 +7,21 @@ const generatedMessage = require('../services/generateResponse')
 router.post('/', async (req, res, next) => {
 
     let message = req.body.message
-    let place = 'Berlin,de'; // placeholder (will be in the request as entity)
 
     let timeNow = new Date()
     let tomorrow = new Date(timeNow.toJSON().split("T")[0])
     let date = timeNow
+    let place = 'berlin'
     let coordinates = null
     let weather = null
     let answerText = null
 
     tomorrow.setDate(tomorrow.getDate() + 1)
+
+    place = message.entities
+        .filter(e => e.entity === 'city')
+        .reduce((prev, now) => (prev.confidence >= now.confidence) ? prev : now, { value: 'berlin' })
+        .value;
 
     message.entities.forEach(function (value, index, array) {
         if (value.entity == 'time') {
