@@ -14,13 +14,13 @@ module.exports = {
             let url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json`
             // console.debug(url)
 
-            let places = await axios.get(url)
+            let res = await axios.get(url)
 
-            if(Array.isArray(places) && places.length > 0) {
+            if(Array.isArray(res.data) && res.data.length > 0) {
                 result = {...result, ...{
-                    lat: places[0].lat,
-                    lon: places[0].lon,
-                    display_name: places[0].display_name
+                    lat: res.data[0].lat,
+                    lon: res.data[0].lon,
+                    display_name: res.data[0].display_name
                 }}
             }
 
