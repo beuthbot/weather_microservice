@@ -1,17 +1,58 @@
+const getdayOfWeek = function (date) {
+    const daysOfWeek = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag']
+    return daysOfWeek[date.getDay() - 1]
+}
+
+const getWeatherIcon = function (weatherFromHour) {
+    const icon = weatherFromHour.weather[0].icon.substring(0, 2)
+    const weatherIcons = {
+        "01": "☀️",
+        "02": "⛅",
+        "03": "☁️",
+        "04": "☁️",
+        "09": "🌧️",
+        "10": "🌦️",
+        "11": "🌩️",
+        "13": "❄️",
+        "50": "🌫️"
+    }
+
+    return weatherIcons[icon]
+}
+
+const setTimeWithHour = function (date) {
+    date.setMinutes(0)
+    date.setSeconds(0)
+    date.setMilliseconds(0)
+}
+
+const getAllDayObjects = function (weather, date) {
+    const dateWithoutTime = date.toJSON().split("T")[0]
+    weather.daily.forEach((day, index) => {
+        if(dateWithoutTime === new Date(day.dt*1000).toJSON().split("T")[0]){
+            weather = day
+        }
+    })
+    return weather
+}
+
 module.exports = {
     generateForecastAnswer: async (weather, date) => {
-        // empty message text that has to be filled and parsed
+        setTimeWithHour(date)
+
         const country = 'Berlin';
-        const weatherFromHour = weather.hourly.filter(hours => hours.dt == new Date(date).getTime()/1000)[0]
-        const daysOfWeek = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag']
-        const weatherDescription = weatherFromHour.weather[0].description
-        const weatherTemp = Math.round(weatherFromHour.temp)
+        const weatherWithHourly = weather.hourly.filter(hours => hours.dt == new Date(date).getTime() / 1000)[0]
+        const weatherWithDaily = getAllDayObjects(weather, date)
+        const daysOfWeek = getdayOfWeek(date)
+        const weatherIcon = getWeatherIcon(weatherWithHourly)
+        const weatherTemp = Math.round(weatherWithHourly.temp)
         const weatherTime = date.getHours()
-        const weatherDay = daysOfWeek[date.getDay()-1]
-        
-        let messageText =   `${country}\n` +
-                            `${weatherTime} Uhr\t🌧 ${weatherTemp}°\n` +  
-                            `${weatherDay}\t\t*23* 18\n`;
+        const weatherTempMax = Math.round(weatherWithDaily.temp.max)
+        const weatherTempMin = Math.round(weatherWithDaily.temp.min)
+
+        let messageText = `${country}\n` +
+            `${weatherTime} Uhr\t${weatherIcon} ${weatherTemp}°\n` +
+            `${daysOfWeek}\t\t*${weatherTempMax}* ${weatherTempMin}\n`;
 
 
         return messageText
@@ -41,7 +82,7 @@ module.exports = {
                     'Windgeschwindigkeit: ' + forecast.wind.speed + 'm/s'
             }
         })
-         
+
         return messageText
     }
 }
