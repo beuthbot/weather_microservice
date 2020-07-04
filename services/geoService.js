@@ -16,7 +16,7 @@ module.exports = {
         }
 
         try {
-            let url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json`
+            let url = `https://nominatim.openstreetmap.org/search?q=${encodeURI(query)}&format=json`
             // console.debug(url)
 
             let res = await axios.get(url)
@@ -36,7 +36,7 @@ module.exports = {
             result = {...result, ...{ error }}
         }
 
-        console.log(result)
+        //console.log(result)
 
         return result
     }

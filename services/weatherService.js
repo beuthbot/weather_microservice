@@ -4,27 +4,21 @@ const config = require('../config')
 module.exports = {
     getForecast: async (coords) => {
         try {
-            let url = `https://api.openweathermap.org/data/2.5/onecall?lat=${coords.lat}&lon=${coords.lon}&exclude=current,minutely,daily&units=metric&lang=de&appid=${config.apiKey}`
-            //console.debug(url)
+            let url = `https://api.openweathermap.org/data/2.5/onecall?lat=${coords.lat}&lon=${coords.lon}&exclude=minutely&units=metric&lang=de&appid=${config.apiKey}`
+            let forecast = await axios.get(url)
 
-            let forecastToday = await axios.get(url)
-            //console.log(forecastToday.data)
-
-            return forecastToday.data
+            return forecast.data
         } catch (error) {
-            //console.log(error)
+            console.log(error)
         }
     },
 
-    getFiveDayForecast: async (coords) => {
+    getHistory: async (coords, dateTime) => {
         try {
-            let url = `https://api.openweathermap.org/data/2.5/forecast?q=${coords.query}&units=metric&lang=de&APPID=${config.apiKey}`
-            //console.debug(url)
+            let url = `https://api.openweathermap.org/data/2.5/onecall/timemachine?lat=${coords.lat}&lon=${coords.lon}&dt=${dateTime}&units=metric&lang=de&appid=${config.apiKey}`
+            let history = await axios.get(url)
 
-            let forecastFiveDays = await axios.get(url)
-            //console.log(forecastFiveDays.data)
-
-            return forecastFiveDays.data
+            return history.data
         } catch (error) {
             console.log(error)
         }

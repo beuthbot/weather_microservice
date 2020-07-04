@@ -6,52 +6,52 @@ const generatedMessage = require('../services/generateResponse')
 
 router.post('/', async (req, res, next) => {
 
-    let message = req.body.message
-
-    let timeNow = new Date()
-    let tomorrow = new Date(timeNow.toJSON().split("T")[0])
+    const message = req.body.message
+    const timeNow = new Date()
+    const twoDaysInFuture = new Date(timeNow.getTime() + 169200000) //set time 47 hours in future
     let date = timeNow
-    let place = 'berlin'
+    let place = null
     let coordinates = null
     let weather = null
     let answerText = null
-
-    tomorrow.setDate(tomorrow.getDate() + 1)
 
     place = message.entities
         .filter(e => e.entity === 'city')
         .reduce((prev, now) => (prev.confidence >= now.confidence) ? prev : now, { value: 'berlin' })
         .value;
 
-    message.entities.forEach(function (value, index, array) {
-        if (value.entity == 'time') {
-            date = new Date(value.value.split(".")[0])
-        } //TODO: Error massege if time 60h
+    message.entities.forEach(time => {
+        if (time.entity == 'time') {
+            date = new Date(time.value)
+            console.log(`Date: ${date}`)
+        }
     })
 
-    console.log(`
-                    date:\t ${new Date(date)} / new Date: ${new Date(date).getTime()},
-                    timeNow:\t ${new Date(timeNow)} / new Date: ${new Date(timeNow).getTime()},
-                    tomorrow:\t ${tomorrow} / new Date: ${new Date(tomorrow).getTime()}`)
+    // console.log(`
+    //                 date:\t\t ${date} / new Date: ${date.getTime()},
+    //                 timeNow:\t\t ${timeNow} / new Date: ${timeNow.getTime()},
+    //                 twoDaysInFuture:\t ${twoDaysInFuture} / new Date: ${twoDaysInFuture.getTime()}`)
 
-    if (new Date(timeNow) <= date && date < new Date(tomorrow)) {
-        //TODO: range up to 48h
-        console.log("Heute")
-        coordinates = await geoService.getCoordinates(place)
+    coordinates = await geoService.getCoordinates(place)
+    city = coordinates.display_name.split(",")[0]
+
+    if (timeNow <= date && date < twoDaysInFuture) {
+        //lower then two days call
         weather = await weatherService.getForecast(coordinates)
-        answerText = await generatedMessage.generateForecastAnswer(weather, date)
+        answerText = await generatedMessage.generateTwoDayforecastAnswer(weather, date, city)
 
-    } else if (date >= new Date(tomorrow)) {
-        console.log("Morden oder später")
-        coordinates = await geoService.getCoordinates(place)
-        weather = await weatherService.getFiveDayForecast(coordinates)
-        answerText = await generatedMessage.generateFiveDayForecastAnswer(weather, date.toJSON().split("T")[0])
+    } else if (date >= twoDaysInFuture) {
+        //higher then two days call
+        weather = await weatherService.getForecast(coordinates)
+        answerText = await generatedMessage.generateSevenDayForecastAnswer(weather, date, city)
 
     } else {
-        console.log("Gestern oder früher")
+        //history Call
+        weather = await weatherService.getHistory(coordinates, date.getTime()/1000)
+        answerText = await generatedMessage.generateWeatherHistoryAnswer(weather, date, city)
     }
 
-    message.answer = { content: answerText, history: ['WeatherService'], parse_mode:"Markdown"}
+    message.answer = { content: answerText, history: ['WeatherService'], parse_mode: "Markdown" }
     res.send(message)
 
 })
