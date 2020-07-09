@@ -14,10 +14,15 @@ router.post('/', async (req, res, next) => {
     let coordinates = null
     let weather = null
     let answerText = null
+    let userHome = 'berlin'
+
+    if (message.user && message.user.details && message.user.details['home']) {
+        userHome = message.user.details['home']
+    }
 
     place = message.entities
         .filter(e => e.entity === 'city')
-        .reduce((prev, now) => (prev.confidence >= now.confidence) ? prev : now, { value: 'berlin' })
+        .reduce((prev, now) => (prev.confidence >= now.confidence) ? prev : now, { value: userHome })
         .value;
 
     message.entities.forEach(time => {
