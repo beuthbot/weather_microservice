@@ -32,26 +32,38 @@ router.post('/', async (req, res, next) => {
     //                 timeNow:\t\t ${timeNow} / new Date: ${timeNow.getTime()},
     //                 twoDaysInFuture:\t ${twoDaysInFuture} / new Date: ${twoDaysInFuture.getTime()}`)
 
+    message.answer = { history: ['WeatherService'], parse_mode: "Markdown" }
+
     coordinates = await geoService.getCoordinates(place)
-    city = coordinates.display_name.split(",")[0]
 
-    if (timeNow <= date && date < twoDaysInFuture) {
-        //lower then two days call
-        weather = await weatherService.getForecast(coordinates)
-        answerText = await generatedMessage.generateTwoDayforecastAnswer(weather, date, city)
-
-    } else if (date >= twoDaysInFuture) {
-        //higher then two days call
-        weather = await weatherService.getForecast(coordinates)
-        answerText = await generatedMessage.generateSevenDayForecastAnswer(weather, date, city)
-
+    if (coordinates.error) {
+        if (typeof coordinates.error === 'string') {
+            message.answer.content = coordinates.error
+        } else {
+            console.error(coordinates.error)
+            message.answer.content = 'Ein unbekannter Fehler ist aufgetreten.'
+        }
     } else {
-        //history Call
-        weather = await weatherService.getHistory(coordinates, date.getTime()/1000)
-        answerText = await generatedMessage.generateWeatherHistoryAnswer(weather, date, city)
-    }
+        city = coordinates.display_name.split(",")[0]
 
-    message.answer = { content: answerText, history: ['WeatherService'], parse_mode: "Markdown" }
+        if (timeNow <= date && date < twoDaysInFuture) {
+            //lower then two days call
+            weather = await weatherService.getForecast(coordinates)
+            answerText = await generatedMessage.generateTwoDayforecastAnswer(weather, date, city)
+
+        } else if (date >= twoDaysInFuture) {
+            //higher then two days call
+            weather = await weatherService.getForecast(coordinates)
+            answerText = await generatedMessage.generateSevenDayForecastAnswer(weather, date, city)
+
+        } else {
+            //history Call
+            weather = await weatherService.getHistory(coordinates, date.getTime()/1000)
+            answerText = await generatedMessage.generateWeatherHistoryAnswer(weather, date, city)
+        }
+
+        message.answer.content = answerText
+    }
     res.send(message)
 
 })

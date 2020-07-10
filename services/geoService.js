@@ -11,10 +11,6 @@ module.exports = {
             query
         }
 
-        if(!query || typeof query !== 'string' || query.toLowerCase() === 'berlin') {
-            return result
-        }
-
         try {
             let url = `https://nominatim.openstreetmap.org/search?q=${encodeURI(query)}&format=json`
             // console.debug(url)
@@ -28,7 +24,7 @@ module.exports = {
                     display_name: res.data[0].display_name
                 }}
             } else {
-                result = {...result, ...{ error: 'Data of nominatim API is missing' }}
+                result = {...result, ...{ error: `Der Ort ${query} wurde nicht gefunden.` }}
             }
 
         } catch (error) {
