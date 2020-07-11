@@ -3,10 +3,13 @@ const router = express.Router()
 const geoService = require('../services/geoService')
 const weatherService = require('../services/weatherService')
 const generatedMessage = require('../services/generateResponse')
+const { text } = require('express')
 
 router.post('/', async (req, res, next) => {
 
     const message = req.body.message
+    message.answer = { history: ['WeatherService'] }
+
     const timeNow = new Date()
     const twoDaysInFuture = new Date(timeNow.getTime() + 169200000) //set time 47 hours in future
     let date = timeNow
@@ -14,6 +17,8 @@ router.post('/', async (req, res, next) => {
     let coordinates = null
     let weather = null
     let answerText = null
+    let timeSpecification = true
+
 
     place = message.entities
         .filter(e => e.entity === 'city')
@@ -28,45 +33,42 @@ router.post('/', async (req, res, next) => {
         }
     }
 
+    coordinates = await geoService.getCoordinates(place)
+
     message.entities.forEach(time => {
-        if (time.entity == 'time') {
+        if (time.entity === 'time') {
             date = new Date(time.value)
-            console.log(`Date: ${date}`)
+            if (date.getHours() == 0 && time.text.toString().search("0") == -1) {
+                timeSpecification = false
+            }
         }
     })
 
-    // console.log(`
-    //                 date:\t\t ${date} / new Date: ${date.getTime()},
-    //                 timeNow:\t\t ${timeNow} / new Date: ${timeNow.getTime()},
-    //                 twoDaysInFuture:\t ${twoDaysInFuture} / new Date: ${twoDaysInFuture.getTime()}`)
+    if (date > new Date(timeNow.getTime() + 604800000)) {
+        message.answer.content = "Du kannst nur maximal 7 Tage in die Zukunft nach dem Wetter fragen."
 
-    message.answer = { history: ['WeatherService'], parse_mode: "Markdown" }
+    } else if (date < new Date(timeNow.getTime() - 432000000)) {
+        message.answer.content = "Du kannst nur maximal 5 Tage in die Vergangenheit nach dem Wetter fragen."
 
-    coordinates = await geoService.getCoordinates(place)
+    } else if (coordinates.error) {
+        message.answer.content = 'Der Ort konnte nicht gefunden werden.\nBitte versuchen sie eine andere Schreibweise.'
 
-    if (coordinates.error) {
-        if (typeof coordinates.error === 'string') {
-            message.answer.content = coordinates.error
-        } else {
-            console.error(coordinates.error)
-            message.answer.content = 'Ein unbekannter Fehler ist aufgetreten.'
-        }
     } else {
         city = coordinates.display_name.split(",")[0]
 
-        if (timeNow <= date && date < twoDaysInFuture) {
-            //lower then two days call
+        if (timeNow <= date && date < twoDaysInFuture && timeSpecification === true) {
+            //up to 47 hours into the future
             weather = await weatherService.getForecast(coordinates)
             answerText = await generatedMessage.generateTwoDayforecastAnswer(weather, date, city)
 
-        } else if (date >= twoDaysInFuture) {
-            //higher then two days call
+        } else if (date >= twoDaysInFuture || (date.getDate() >= timeNow.getDate() && timeSpecification === false)) {
+            //higher then two days into the future or no time specification call
             weather = await weatherService.getForecast(coordinates)
             answerText = await generatedMessage.generateSevenDayForecastAnswer(weather, date, city)
 
         } else {
             //history Call
-            weather = await weatherService.getHistory(coordinates, date.getTime()/1000)
+            weather = await weatherService.getHistory(coordinates, date.getTime() / 1000)
             answerText = await generatedMessage.generateWeatherHistoryAnswer(weather, date, city)
         }
 
