@@ -17,8 +17,16 @@ router.post('/', async (req, res, next) => {
 
     place = message.entities
         .filter(e => e.entity === 'city')
-        .reduce((prev, now) => (prev.confidence >= now.confidence) ? prev : now, { value: 'berlin' })
+        .reduce((prev, now) => (prev.confidence >= now.confidence) ? prev : now, { })
         .value;
+
+    if(typeof place !== 'string') {
+        if(message.user && message.user.details && message.user.details.home) {
+            place = message.user.details.home
+        } else {
+            place = 'berlin'
+        }
+    }
 
     message.entities.forEach(time => {
         if (time.entity == 'time') {
