@@ -11,7 +11,6 @@ router.post('/', async (req, res, next) => {
 
     const historyAdd = ['WeatherService'];
     const history = message.history ? message.history.concat(historyAdd) : historyAdd;
-
     message.answer = { history }
 
     const timeNow = new Date()
