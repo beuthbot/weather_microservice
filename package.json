@@ -2,11 +2,14 @@
   "name": "weather_microservice",
   "version": "0.0.0",
   "description": "a microservice for the weather",
+  "main": "index.js",
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node index.js",
+    "dev": "nodemon index.js"
   },
   "author": "Steven Sobkowski",
   "dependencies": {
+    "@bhtbot/bhtbotservice": "0.0.5",
     "axios": "^0.19.1",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",

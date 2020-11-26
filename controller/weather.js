@@ -1,17 +1,8 @@
-const express = require('express')
-const router = express.Router()
 const geoService = require('../services/geoService')
 const weatherService = require('../services/weatherService')
 const generatedMessage = require('../services/generateResponse')
-const { text } = require('express')
 
-router.post('/', async (req, res, next) => {
-
-    const message = req.body.message
-
-    const historyAdd = ['WeatherService'];
-    const history = message.history ? message.history.concat(historyAdd) : historyAdd;
-    message.answer = { history }
+module.exports = async (gatewayRequest, answer) => {
 
     const timeNow = new Date()
     const twoDaysInFuture = new Date(timeNow.getTime() + 169200000) //set time 47 hours in future
@@ -23,14 +14,14 @@ router.post('/', async (req, res, next) => {
     let timeSpecification = true
 
 
-    place = message.entities
+    place = gatewayRequest.entities
         .filter(e => e.entity === 'city')
         .reduce((prev, now) => (prev.confidence >= now.confidence) ? prev : now, { })
         .value;
 
     if(typeof place !== 'string') {
-        if(message.user && message.user.details && message.user.details.home) {
-            place = message.user.details.home
+        if(gatewayRequest.user && gatewayRequest.user.details && gatewayRequest.user.details.home) {
+            place = gatewayRequest.user.details.home
         } else {
             place = 'berlin'
         }
@@ -38,7 +29,7 @@ router.post('/', async (req, res, next) => {
 
     coordinates = await geoService.getCoordinates(place)
 
-    message.entities.forEach(time => {
+    gatewayRequest.entities.forEach(time => {
         if (time.entity === 'time') {
             date = new Date(time.value)
             if (date.getHours() == 0 && time.text.toString().search("0") == -1) {
@@ -48,13 +39,13 @@ router.post('/', async (req, res, next) => {
     })
 
     if (date > new Date(timeNow.getTime() + 604800000)) {
-        message.answer.content = "Du kannst nur maximal 7 Tage in die Zukunft nach dem Wetter fragen."
+        answer.content = "Du kannst nur maximal 7 Tage in die Zukunft nach dem Wetter fragen."
 
     } else if (date < new Date(timeNow.getTime() - 432000000)) {
-        message.answer.content = "Du kannst nur maximal 5 Tage in die Vergangenheit nach dem Wetter fragen."
+        answer.content = "Du kannst nur maximal 5 Tage in die Vergangenheit nach dem Wetter fragen."
 
     } else if (coordinates.error) {
-        message.answer.content = 'Der Ort konnte nicht gefunden werden.\nBitte versuchen sie eine andere Schreibweise.'
+        answer.content = 'Der Ort konnte nicht gefunden werden.\nBitte versuchen sie eine andere Schreibweise.'
 
     } else {
         city = coordinates.display_name.split(",")[0]
@@ -75,9 +66,8 @@ router.post('/', async (req, res, next) => {
             answerText = await generatedMessage.generateWeatherHistoryAnswer(weather, date, city)
         }
 
-        message.answer.content = answerText
+        answer.content = answerText
     }
-    res.send(message)
 
-})
-module.exports = router
+    return answer;
+}
