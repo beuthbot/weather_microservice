@@ -8,7 +8,11 @@ const { text } = require('express')
 router.post('/', async (req, res, next) => {
 
     const message = req.body.message
-    message.answer = { history: ['WeatherService'] }
+
+    const historyAdd = ['WeatherService'];
+    const history = message.history ? message.history.concat(historyAdd) : historyAdd;
+
+    message.answer = { history }
 
     const timeNow = new Date()
     const twoDaysInFuture = new Date(timeNow.getTime() + 169200000) //set time 47 hours in future
